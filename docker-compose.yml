@@ -1,0 +1,57 @@
+version: "3"
+services:
+  backend:
+    container_name: backend
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: backend-nest
+    ports:
+      - "4000:3000"
+    environment:
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+      PORT: 3000
+    env_file:
+      - .env
+    depends_on:
+      - database
+    networks:
+      - internet
+      - internal-network
+
+  frontend:
+    container_name: frontend
+    restart: always
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: frontend-cra
+    ports:
+      - "8081:80"
+    networks:
+      - internet
+
+  database:
+    container_name: postgres-container
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PORT: 5432
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./pg-data:/var/lib/postgresql/data/pgdata
+    networks:
+      - internal-network
+
+networks:
+  internal-network:
+    driver: bridge
+    internal: true
+  internet:
+    driver: bridge
